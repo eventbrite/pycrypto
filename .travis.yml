@@ -20,8 +20,8 @@ env:
   - PYENV_VERSION=3.4.3 preconfigure_args=--without-gmp
   - PYENV_VERSION=3.5.2
   - PYENV_VERSION=3.5.2 preconfigure_args=--without-gmp
-  - PYENV_VERSION=3.6.4
-  - PYENV_VERSION=3.6.4 preconfigure_args=--without-gmp
+  - PYENV_VERSION=3.6.3
+  - PYENV_VERSION=3.6.3 preconfigure_args=--without-gmp
 # PyCrypto does not support PyPy yet.
 # See https://github.com/dlitz/pycrypto/pull/59
 #  - PYENV_VERSION=pypy-2.3.1
