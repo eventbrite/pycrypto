@@ -1431,8 +1431,10 @@ getStrongPrime (PyObject *self, PyObject *args, PyObject *kwargs)
 	Py_BLOCK_THREADS;
 	res = 1;
 	res &= getRandomRange (X, lower_bound, upper_bound, randfunc);
-	res &= getRandomNBitInteger (y[0], 101, randfunc);
-	res &= getRandomNBitInteger (y[1], 101, randfunc);
+	if (res != 0)
+		res &= getRandomNBitInteger (y[0], 101, randfunc);
+	if (res != 0)
+		res &= getRandomNBitInteger (y[1], 101, randfunc);
 	Py_UNBLOCK_THREADS;
 	if (!res)
 	{
