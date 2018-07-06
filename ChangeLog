@@ -71,6 +71,11 @@
 	* Various cleanups, especially for Python 3.
 
 
+2.6.2
+=====
+    * Fix memory leaks in `_fastmath` C module
+
+
 2.6.1
 =====
 	* [CVE-2013-1445] Fix PRNG not correctly reseeded in some situations.
