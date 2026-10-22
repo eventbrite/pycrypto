@@ -123,7 +123,9 @@ ALGnew(PyObject *self, PyObject *args, PyObject *kwdict)
 {
 	unsigned char *key, *IV;
 	ALGobject * new=NULL;
-	int keylen, IVlen=0, mode=MODE_ECB, segment_size=0;
+	/* s# writes a Py_ssize_t when PY_SSIZE_T_CLEAN is set (required on 3.10+). */
+	Py_ssize_t keylen, IVlen = 0;
+	int mode = MODE_ECB, segment_size = 0;
 	PyObject *counter = NULL;
 	int counter_shortcut = 0;
 #ifdef PCT_ARC2_MODULE
@@ -160,7 +162,7 @@ ALGnew(PyObject *self, PyObject *args, PyObject *kwdict)
 	if (KEY_SIZE!=0 && keylen!=KEY_SIZE)
 	{
 		PyErr_Format(PyExc_ValueError,
-			     "Key must be %i bytes long, not %i",
+			     "Key must be %i bytes long, not %zd",
 			     KEY_SIZE, keylen);
 		return NULL;
 	}
@@ -253,7 +255,8 @@ ALG_Encrypt(ALGobject *self, PyObject *args)
 {
 	unsigned char *buffer, *str;
 	unsigned char temp[BLOCK_SIZE];
-	int i, j, len;
+	int i, j;
+	Py_ssize_t len;
 	PyObject *result;
   
 	if (!PyArg_Parse(args, "s#", &str, &len))
@@ -485,7 +488,8 @@ ALG_Decrypt(ALGobject *self, PyObject *args)
 {
 	unsigned char *buffer, *str;
 	unsigned char temp[BLOCK_SIZE];
-	int i, j, len;
+	int i, j;
+	Py_ssize_t len;
 	PyObject *result;
 
 	/* CTR mode decryption is identical to encryption */

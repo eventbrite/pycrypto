@@ -134,7 +134,8 @@ winrandom_new(PyObject *self, PyObject *args, PyObject *kwdict)
 static PyObject *
 WR_get_bytes(WRobject *self, PyObject *args)
 {
-	int n, nbytes, len = 0;
+	int n, nbytes;
+	Py_ssize_t len = 0;
 	PyObject *res;
 	char *buf, *str = NULL;
 	

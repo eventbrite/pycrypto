@@ -36,6 +36,22 @@
 
 __revision__ = "$Id$"
 
+import sys
+
+# setuptools >= 60 installs a meta-path finder that replaces distutils and
+# drops build_py_2to3. These sources are still Python 2 and are translated
+# at build time, so the stdlib distutils (present through 3.11) has to be
+# the one this file imports. Python 3.12 removed distutils.
+try:
+    import _distutils_hack
+    _distutils_hack.remove_shim()
+except Exception:
+    pass
+for _name in list(sys.modules):
+    if _name == 'distutils' or _name.startswith('distutils.'):
+        del sys.modules[_name]
+del _name
+
 from distutils import core
 from distutils.ccompiler import new_compiler
 from distutils.core import Extension, Command
@@ -109,6 +125,11 @@ def endianness_macro():
 
 class PCTBuildExt (build_ext):
     def build_extensions(self):
+        # Python 3.10 rejects '#' formats in PyArg_ParseTuple unless this
+        # macro is defined before Python.h. A compiler define covers every
+        # extension, including the CTR path Crypto.Random uses.
+        self.compiler.define_macro('PY_SSIZE_T_CLEAN')
+
         # Detect which modules should be compiled
         self.detect_modules()
 
@@ -342,7 +363,7 @@ class TestCommand(Command):
         self.announce("running extended self-tests")
 
 kw = {'name':"pycrypto",
-      'version':"2.6.3+eventbrite-0",  # See also: lib/Crypto/__init__.py
+      'version':"2.6.3+eventbrite-1",  # See also: lib/Crypto/__init__.py
       'description':"Cryptographic modules for Python.",
       'author':"Dwayne C. Litzenberger",
       'author_email':"dlitz@dlitz.net",

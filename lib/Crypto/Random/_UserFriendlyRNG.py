@@ -34,6 +34,14 @@ import struct
 import time
 from math import floor
 
+# time.clock() was removed in Python 3.8. perf_counter() is the clock this
+# entropy sample wants, and it exists on every Python 3 this tree builds.
+# Python 2.7 only has time.clock().
+if hasattr(time, 'perf_counter'):
+    _clock = time.perf_counter
+else:
+    _clock = time.clock
+
 from Crypto.Random import OSRNG
 from Crypto.Random.Fortuna import FortunaAccumulator
 
@@ -73,8 +81,8 @@ class _EntropyCollector(object):
         t = time.time()
         self._time_es.feed(struct.pack("@I", int(2**30 * (t - floor(t)))))
 
-        # Add the fractional part of time.clock()
-        t = time.clock()
+        # Add the fractional part of the process clock.
+        t = _clock()
         self._clock_es.feed(struct.pack("@I", int(2**30 * (t - floor(t)))))
 
 
