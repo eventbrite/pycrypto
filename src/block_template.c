@@ -162,7 +162,7 @@ ALGnew(PyObject *self, PyObject *args, PyObject *kwdict)
 	if (KEY_SIZE!=0 && keylen!=KEY_SIZE)
 	{
 		PyErr_Format(PyExc_ValueError,
-			     "Key must be %i bytes long, not %i",
+			     "Key must be %i bytes long, not %zd",
 			     KEY_SIZE, keylen);
 		return NULL;
 	}
