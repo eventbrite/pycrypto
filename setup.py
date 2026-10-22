@@ -38,19 +38,44 @@ __revision__ = "$Id$"
 
 import sys
 
-# setuptools >= 60 installs a meta-path finder that replaces distutils and
-# drops build_py_2to3. These sources are still Python 2 and are translated
-# at build time, so the stdlib distutils (present through 3.11) has to be
-# the one this file imports. Python 3.12 removed distutils.
-try:
-    import _distutils_hack
-    _distutils_hack.remove_shim()
-except Exception:
-    pass
-for _name in list(sys.modules):
-    if _name == 'distutils' or _name.startswith('distutils.'):
-        del sys.modules[_name]
-del _name
+def _build_py_class():
+    # setuptools >= 60 replaces distutils and drops build_py_2to3. These
+    # sources are still Python 2 and are translated at build time, so the
+    # class has to come from the stdlib distutils (present through 3.11).
+    # pip also needs the setuptools commands already registered on distutils
+    # (egg_info, bdist_wheel). Unloading distutils for the whole process
+    # makes those commands disappear, so the stdlib is imported only long
+    # enough to take the class, then the setuptools modules go back.
+    # Python 3.12 removed distutils.
+    try:
+        import setuptools  # noqa: F401
+    except ImportError:
+        pass
+    saved = {}
+    for _name in list(sys.modules):
+        if _name == 'distutils' or _name.startswith('distutils.'):
+            saved[_name] = sys.modules.pop(_name)
+    try:
+        try:
+            import _distutils_hack
+            _distutils_hack.remove_shim()
+        except Exception:
+            pass
+        for _name in list(sys.modules):
+            if _name == 'distutils' or _name.startswith('distutils.'):
+                del sys.modules[_name]
+        try:
+            from distutils.command.build_py import build_py_2to3 as build_py
+        except ImportError:
+            from distutils.command.build_py import build_py
+        return build_py
+    finally:
+        for _name in list(sys.modules):
+            if _name == 'distutils' or _name.startswith('distutils.'):
+                del sys.modules[_name]
+        sys.modules.update(saved)
+
+build_py = _build_py_class()
 
 from distutils import core
 from distutils.ccompiler import new_compiler
@@ -81,13 +106,6 @@ else:
 # .gcov files
 USE_GCOV = 0
 
-
-try:
-    # Python 3
-    from distutils.command.build_py import build_py_2to3 as build_py
-except ImportError:
-    # Python 2
-    from distutils.command.build_py import build_py
 
 # List of pure Python modules that will be excluded from the binary packages.
 # The list consists of (package, module_name) tuples
@@ -363,7 +381,7 @@ class TestCommand(Command):
         self.announce("running extended self-tests")
 
 kw = {'name':"pycrypto",
-      'version':"2.6.3+eventbrite-1",  # See also: lib/Crypto/__init__.py
+      'version':"2.6.3+eventbrite-2",  # See also: lib/Crypto/__init__.py
       'description':"Cryptographic modules for Python.",
       'author':"Dwayne C. Litzenberger",
       'author_email':"dlitz@dlitz.net",
